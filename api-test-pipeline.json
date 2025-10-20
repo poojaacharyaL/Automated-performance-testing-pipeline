@@ -1,0 +1,1443 @@
+{
+  "name": "open source testing",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1392,
+        320
+      ],
+      "id": "523e785f-52f6-4d23-907a-8dbc2ec698e6",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e383b14f-525c-4e3d-aab8-f1905656d703",
+              "name": "k6_output",
+              "value": "={{$node[\"Extract from File\"].json[\"data\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "ebf3f386-76de-4537-83ab-dda9b1fbf974",
+              "name": "prometheus_metrics",
+              "value": "={{$node[\"prometheus metrics\"].json}}",
+              "type": "string"
+            },
+            {
+              "id": "fe570630-9cc8-4156-9366-951209562fc7",
+              "name": "timestamp",
+              "value": "={{$now.setZone(\"Asia/Kolkata\").toFormat(\"dd-LLLL-yyyy HH:mm:ss\")}}\n",
+              "type": "string"
+            },
+            {
+              "id": "5965b726-8a8b-4504-a3a3-99c7f9d65e5e",
+              "name": "gcLog",
+              "value": "={{$node[\"Code in JavaScript\"].json[\"gcLog\"]}}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": false,
+          "dotNotation": true
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1120,
+        12592
+      ],
+      "id": "7b7c92d3-2087-459f-8745-0545a1195c33",
+      "name": "Edit Fields",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/report.html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        13872
+      ],
+      "id": "61015283-a60d-44ec-8cb2-ef3f60279e79",
+      "name": "Read/Write Files from Disk2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "\n\n// Use the correct HTML key from previous node\nlet htmlBody = $json[\"html\"] || \"\";\n\nif (!htmlBody) {\n    throw new Error(\"HTML content is empty. Check the previous node output key.\");\n}\n\n\n\n\n// Encode HTML as base64\nconst binaryData = Buffer.from(htmlBody, \"utf8\").toString(\"base64\");\n\nreturn [\n  {\n    json: {},\n    binary: {\n      data: {\n        data: binaryData,\n        mimeType: \"text/html\",\n        fileName: \"Analysis_report.html\"\n      }\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        14352
+      ],
+      "id": "8da9b092-f8de-41cf-8ea8-437af6e329cd",
+      "name": "Code4",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Garbage Collection Analysis Report</title>\n  <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css\">\n  <style>\n    :root {\n      --primary: #2c3e50;\n      --secondary: #34495e;\n      --accent: #3498db;\n      --success: #27ae60;\n      --warning: #f39c12;\n      --danger: #e74c3c;\n      --light: #ecf0f1;\n      --dark: #2c3e50;\n      --gray: #95a5a6;\n      --text: #2c3e50;\n      --background: #f8f9fa;\n      --card-bg: #ffffff;\n      --border: #e0e0e0;\n    }\n    * { box-sizing: border-box; margin: 0; padding: 0; }\n    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: var(--text); background-color: var(--background); }\n    .container { max-width: 1200px; margin: 0 auto; padding: 20px; }\n    .header { background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); color: white; padding: 25px 30px; border-radius: 8px 8px 0 0; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }\n    .header h1 { font-weight: 600; font-size: 28px; margin-bottom: 5px; display: flex; align-items: center; }\n    .header h1 i { margin-right: 15px; font-size: 32px; }\n    .header p { opacity: 0.85; font-size: 16px; }\n    .report-meta { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 15px; font-size: 14px; }\n    .meta-item { background: rgba(255, 255, 255, 0.1); padding: 5px 12px; border-radius: 20px; display: flex; align-items: center; }\n    .meta-item i { margin-right: 5px; }\n    .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }\n    .card { background: var(--card-bg); border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden; transition: transform 0.3s ease, box-shadow 0.3s ease; }\n    .card:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }\n    .card-header { background: var(--light); padding: 15px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }\n    .card-header h2 { font-size: 18px; font-weight: 600; color: var(--primary); display: flex; align-items: center; }\n    .card-header h2 i { margin-right: 10px; font-size: 18px; }\n    .card-body { padding: 20px; }\n    .card.full-width {\n  grid-column: 1 / -1; /* makes card span all columns */\n}\n\n    .metric-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }\n    .metric { text-align: center; padding: 15px; border-radius: 6px; background: #f8f9fa; }\n    .metric h3 { font-size: 14px; font-weight: 500; margin-bottom: 8px; color: var(--gray); }\n    .metric .value { font-size: 20px; font-weight: 600; color: var(--primary); }\n    .progress-bar { height: 8px; background: #e0e0e0; border-radius: 4px; overflow: hidden; margin-top: 8px; }\n    .progress { height: 100%; background: var(--success); border-radius: 4px; }\n    .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }\n    .status-problem { background: #ffebee; color: var(--danger); }\n    .status-normal { background: #e8f5e9; color: var(--success); }\n    .warning-item { padding: 12px 15px; margin-bottom: 10px; background: #fff8e1; border-left: 4px solid var(--warning); border-radius: 0 4px 4px 0; display: flex; align-items: flex-start; }\n    .warning-item i { color: var(--warning); margin-right: 10px; margin-top: 2px; }\n    .tip-item { padding: 12px 15px; margin-bottom: 10px; background: #e8f5e9; border-left: 4px solid var(--success); border-radius: 0 4px 4px 0; }\n    .tip-item h4 { font-weight: 600; margin-bottom: 5px; color: var(--success); }\n    .heap-size-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }\n    .heap-size-item:last-child { border-bottom: none; }\n    .heap-label { font-weight: 500; }\n    .heap-value { font-weight: 600; }\n    .cause-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }\n    .cause-item:last-child { border-bottom: none; }\n    .recommendation-item { padding: 15px; margin-bottom: 15px; background: #e3f2fd; border-radius: 6px; border-left: 4px solid var(--accent); }\n    .recommendation-item h4 { color: var(--accent); margin-bottom: 8px; font-weight: 600; }\n    .external-links { display: flex; flex-wrap: wrap; gap: 15px; }\n    .link-button { display: flex; align-items: center; padding: 12px 20px; background: var(--light); color: var(--primary); text-decoration: none; border-radius: 6px; font-weight: 500; transition: all 0.2s ease; }\n    .link-button:hover { background: var(--accent); color: white; }\n    .link-button i { margin-right: 8px; }\n    .footer { text-align: center; margin-top: 40px; padding: 20px; color: var(--gray); font-size: 14px; border-top: 1px solid var(--border); }\n    @media (max-width: 768px) { .grid-container { grid-template-columns: 1fr; } .metric-grid { grid-template-columns: 1fr; } .external-links { flex-direction: column; } }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1><i class=\"fas fa-chart-line\"></i> Garbage Collection Analysis Report</h1>\n      <p>Comprehensive analysis of Java Virtual Machine garbage collection performance and metrics</p>\n      <div class=\"report-meta\">\n        <div class=\"meta-item\">\n          <i class=\"fas fa-calendar\"></i> Generated on: <span id=\"current-date\">{{$now.setZone(\"Asia/Kolkata\").toFormat(\"dd-LLLL-yyyy HH:mm:ss\")}}</span>\n        </div>\n        <div class=\"meta-item\">\n          <i class=\"fas fa-microchip\"></i> JVM Monitor v2.4.1\n        </div>\n      </div>\n    </div>\n\n    <div class=\"grid-container\">\n      <!-- Overview Card -->\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <h2><i class=\"fas fa-info-circle\"></i> Overview</h2>\n        </div>\n        <div class=\"card-body\">\n          <div class=\"metric-grid\">\n            <div class=\"metric\">\n              <h3>THROUGHPUT</h3>\n              <div class=\"value\">{{ $json.gcKPI.throughputPercentage }}%</div>\n              <div class=\"progress-bar\">\n                <div class=\"progress\" style=\"width: {{ $json.gcKPI.throughputPercentage }}%;\"></div>\n              </div>\n            </div>\n            <div class=\"metric\">\n              <h3>AVG PAUSE TIME</h3>\n              <div class=\"value\">{{ $json.gcKPI.averagePauseTime }} ms</div>\n            </div>\n            <div class=\"metric\">\n              <h3>MAX PAUSE TIME</h3>\n              <div class=\"value\">{{ $json.gcKPI.maxPauseTime }} ms</div>\n            </div>\n            <div class=\"metric\">\n              <h3>CPU TIME</h3>\n              <div class=\"value\">{{ $json.gcKPI.cpuTime }} ms</div>\n            </div>\n          </div>\n          <div style=\"margin-top: 20px; padding: 12px; background: #f8f9fa; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;\">\n            <div>\n              <strong>Status:</strong>\n              <span class=\"status-badge {{ $json.isProblem ? 'status-problem' : 'status-normal' }}\">\n                {{ $json.isProblem ? 'Needs Attention' : 'Normal' }}\n              </span>\n            </div>\n            <div>\n              <i class=\"fas {{ $json.isProblem ? 'fa-exclamation-triangle text-danger' : 'fa-check-circle text-success' }}\"></i>\n            </div>\n          </div>\n        </div>\n      </div>\n\n   <!-- Warnings Card -->\n<div class=\"card\">\n  <div class=\"card-header\">\n    <h2><i class=\"fas fa-exclamation-triangle\"></i> Warnings </h2>\n  </div>\n  <div class=\"card-body\">\n    <div class=\"section\">\n      <p>\n        {{ $json[\"warnings\"].length > 0 ? $json[\"warnings\"].join(\"<br>⚠️ \") : \"No critical warnings detected\" }}\n      </p>\n    </div>\n  </div>\n</div>\n\n      <!-- Heap Size Card -->\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <h2><i class=\"fas fa-layer-group\"></i> Heap Size Analysis</h2>\n        </div>\n        <div class=\"card-body\">\n          <div class=\"heap-size-item\">\n            <span class=\"heap-label\">Young Generation:</span>\n            <span class=\"heap-value\">{{ $json.jvmHeapSize.youngGen.allocatedSize }} (Peak: {{ $json.jvmHeapSize.youngGen.peakSize }})</span>\n          </div>\n          <div class=\"heap-size-item\">\n            <span class=\"heap-label\">Old Generation:</span>\n            <span class=\"heap-value\">{{ $json.jvmHeapSize.oldGen.allocatedSize }} (Peak: {{ $json.jvmHeapSize.oldGen.peakSize }})</span>\n          </div>\n          <div class=\"heap-size-item\">\n            <span class=\"heap-label\">Metaspace:</span>\n            <span class=\"heap-value\">{{ $json.jvmHeapSize.metaSpace.allocatedSize }} (Peak: {{ $json.jvmHeapSize.metaSpace.peakSize }})</span>\n          </div>\n          <div class=\"heap-size-item\">\n            <span class=\"heap-label\">Total Heap:</span>\n            <span class=\"heap-value\">{{ $json.jvmHeapSize.total.allocatedSize }} (Peak: {{ $json.jvmHeapSize.total.peakSize }})</span>\n          </div>\n        </div>\n      </div>\n    </div>\n\n  <!-- Second row: GC Causes + Heap Tuning -->\n    <div class=\"grid-container\">\n      <!-- GC Causes Card -->\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <h2><i class=\"fas fa-search\"></i> GC Causes</h2>\n        </div>\n        <div class=\"card-body\">\n          <div class=\"section\">\n            <p>\n              {{ $json[\"gcCauses\"].length > 0 \n                  ? $json[\"gcCauses\"].map(cause => \"• \" + cause.cause.replace('..', '.') + \" - <strong>\" + cause.count + \"</strong> times\").join(\"<br>\") \n                  : \"No GC causes detected\" \n              }}\n            </p>\n          </div>\n        </div>\n      </div>\n\n      <!-- Heap Tuning Tips Card -->\n      <div class=\"card\">\n        <div class=\"card-header\">\n          <h2><i class=\"fas fa-wrench\"></i> Heap Tuning Recommendations</h2>\n        </div>\n        <div class=\"card-body\">\n          <div class=\"section\">\n            <p>\n              {{ $json[\"heapTuningTips\"].length > 0\n                  ? $json[\"heapTuningTips\"]\n                      .map(tip => tip\n                          .replace(/You can learn more about this property in <a[^>]*>.*?<\\/a>\\.?/gi, '')\n                          .replace(/If you are looking to tune G1 GC performance even further, here are the <a[^>]*>.*?<\\/a>\\.?/gi, '')\n                          .trim()\n                      )\n                      .map(tip => \"💡 \" + tip)\n                      .join(\"<br><br>\")\n                  : \"No heap tuning recommendations available\"\n              }}\n            </p>\n          </div>\n        </div>\n      </div>\n    </div> <!-- closes second row -->\n\n    <!-- Third row: Performance Recommendations (full width) -->\n    <div class=\"grid-container\">\n      <div class=\"card full-width\">\n        <div class=\"card-header\">\n          <h2><i class=\"fas fa-tasks\"></i> Performance Recommendations</h2>\n        </div>\n        <div class=\"card-body\">\n          {{ $json.tipsToReduceGCTime.length > 0 \n              ? $json.tipsToReduceGCTime.map(rec => \n                  \"<div class='recommendation-item'>\" +\n                  \"<h4>\" + rec.issue.replace('..', '.') + \"</h4>\" +\n                  \"<p><strong>Solution:</strong> \" + rec.solution.replace(/\\s*<a.*?<\\/a>/g, '').replace('..', '.') + \"</p>\" +\n                  \"</div>\"\n                ).join(\"\") \n              : \"<p>No performance recommendations available</p>\" \n          }}\n        </div>\n      </div>\n    </div>\n\n    <!-- Fourth row: External Reports (full width) -->\n       <div class=\"grid-container\">\n      <div class=\"card full-width\">\n        <div class=\"card-header\">\n          <h2><i class=\"fas fa-external-link-alt\"></i> External Reports</h2>\n        </div>\n        <div class=\"card-body\">\n          <div class=\"external-links\">\n            <a href=\"{{ $json.graphURL }}\" target=\"_blank\" class=\"link-button\">\n              <i class=\"fas fa-chart-bar\"></i> View Graph Report\n            </a>\n            <a href=\"{{ $json.webReport }}\" target=\"_blank\" class=\"link-button\">\n              <i class=\"fas fa-desktop\"></i> View Web Report\n            </a>\n            <a href=\"{{ $json.pdfReport }}\" target=\"_blank\" class=\"link-button\">\n              <i class=\"fas fa-file-pdf\"></i> Download PDF Report\n            </a>\n          </div>\n        </div>\n      </div>\n       </div>\n  \n\n\n    <div class=\"footer\">\n      <p>GC Analysis Report • Generated by JVM Performance Suite • Confidential</p>\n    </div>\n  </div>\n</body>\n</html>\n"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        14352
+      ],
+      "id": "2f6810b6-d097-40ed-aed0-6db712bb1274",
+      "name": "HTML1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// =====================\n// 1. Get LLM raw output\n// =====================\nconst llmRaw = $node[\"Analyzer\"].json[\"text\"];\nif (!llmRaw) throw new Error(\"LLM output not found\");\n\n// =====================\n// 2. Extract JSON block using regex\n// =====================\nconst match = llmRaw.match(/\\{[\\s\\S]*\\}/); // first {...} block\nif (!match) throw new Error(\"No JSON found in LLM output\");\n\nlet jsonString = match[0];\n\n// =====================\n// 3. Clean up JSON string\n// =====================\njsonString = jsonString.replace(/\\/\\*[\\s\\S]*?\\*\\//g, \"null\"); // remove /* ... */\njsonString = jsonString.replace(/\\.\\.\\.[^\\n,}]*/g, \"\");       // remove \"...\"\njsonString = jsonString.replace(/,(\\s*[}\\]])/g, \"$1\");        // remove trailing commas\n\n// =====================\n// 4. Parse safely\n// =====================\nlet llm;\ntry {\n    llm = JSON.parse(jsonString);\n} catch (error) {\n    throw new Error(\"Failed to parse JSON after extraction: \" + error.message);\n}\n\n// =====================\n// 5. Convert arrays → HTML (optional for report building)\n// =====================\nconst keyFindingsHtml = (llm.executive_summary?.key_findings || [])\n  .map(f => `<li>${f}</li>`).join(\"\");\n\nconst correlationsHtml = (llm.executive_summary?.correlations || [])\n  .map(c => {\n      if (typeof c === \"object\") {\n          return `<li>${Object.entries(c).map(([k,v]) => `${k}: ${v}`).join(\" → \")}</li>`;\n      }\n      return `<li>${c}</li>`;\n  }).join(\"\");\n\n// Use actionable_recommendations if present, else fallback\nconst recommendationsArray = (llm.findings_recommendations?.actionable_recommendations || [])\n  .filter(r => r).length \n  ? llm.findings_recommendations.actionable_recommendations\n  : llm.executive_summary?.top_recommendations || [];\n\nconst rootCausesHtml = (llm.findings_recommendations?.root_causes_of_issues || [])\n  .map(c => `<li>${c}</li>`).join(\"\");\n\n// Handle next_steps safely\nconst actionableHtml = (recommendationsArray || [])\n  .filter(r => r)\n  .map(r => {\n      let nextStepsText = \"\";\n      if (Array.isArray(r.next_steps)) {\n          nextStepsText = r.next_steps.join(\", \");\n      } else if (typeof r.next_steps === \"string\") {\n          nextStepsText = r.next_steps;\n      }\n      return `\n        <li>\n          <b>Metric:</b> ${r.metric || \"N/A\"} (${r.value ?? \"N/A\"}, threshold: ${r.threshold ?? \"N/A\"})<br>\n          <b>Suggested Action:</b> ${r.suggested_action || \"N/A\"}<br>\n          <b>Expected Impact:</b> ${r.expected_impact || \"N/A\"}<br>\n          <b>Next Steps:</b> ${nextStepsText}<br>\n          <b>Priority:</b> ${r.priority || \"N/A\"}\n        </li>\n      `;\n  }).join(\"\");\n\n// =====================\n// 6. Get metricsData raw (unchanged from Merge node)\n// =====================\nconst metricsData = $node[\"Merge\"].json.metricsData;\n\n// =====================\n// 7. Return final JSON\n// =====================\nreturn [{\n  json: {\n    metricsData,        // raw metrics\n    llmOutput: llm,     // parsed LLM structured JSON\n    \n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        12928
+      ],
+      "id": "3e75ae55-5538-41d5-a1a5-a401f76d504c",
+      "name": "Code3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://192.168.0.148:11436/api/generate",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"model\": \"llama3:8b\",\n  \"prompt\": \"Hello, how are you?\",\n  \"stream\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4304,
+        15488
+      ],
+      "id": "90dbd17d-8d53-40fb-9a2f-58c1f7e95337",
+      "name": "to access ollama in another system using ip",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "http://192.168.0.148:11436/api/tags",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4528,
+        15504
+      ],
+      "id": "a6dd0ba9-de53-4a64-be48-a76121fc4c7a",
+      "name": "to get the models in another system under ollama ",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 1,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1584,
+        13552
+      ],
+      "id": "8eed854a-60ca-4839-bf38-488fc39dc45a",
+      "name": "Wait",
+      "webhookId": "954c33e1-f348-4b24-bb83-6fb463adf7b4",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        864,
+        13792
+      ],
+      "id": "579ce6dd-0203-4ddb-929d-6e218710ba9c",
+      "name": "Extract from File",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "https://petstore.swagger.io/v2/swagger.yaml",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -944,
+        320
+      ],
+      "id": "a9fec6f3-9259-41a4-9464-879b08394fac",
+      "name": "collecting swagger file"
+    },
+    {
+      "parameters": {
+        "model": "mistral:7b",
+        "options": {
+          "temperature": 0.1,
+          "format": "json"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        176
+      ],
+      "id": "158d3324-947a-443c-ba4b-9fbe33a9a7cc",
+      "name": "Ollama Model1",
+      "credentials": {
+        "ollamaApi": {
+          "id": "bSLNFHbDe0Lhrr4t",
+          "name": "Ollama account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "Collects the Swagger yaml file from the Sprinboot app ",
+        "height": 224,
+        "width": 384,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        272
+      ],
+      "id": "f7035166-30bb-474e-a7fa-cc0725cc5894",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get test data from previous node\nconst testData = $input.all()[0].json.requests || [];\n\nconst filteredData = testData.filter(e => e.endpoint && e.method && !e.endpoint.includes('/uploadImage'));\n\n// --- Start of k6 Script ---\nlet k6Script = `import http from 'k6/http';\\n`;\nk6Script += `import { check, sleep } from 'k6';\\n`;\nk6Script += `import { SharedArray } from 'k6/data';\\n\\n`;\n\n// --- Add reporting imports ---\nk6Script += `import { htmlReport } from \"https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js\";\\n`;\nk6Script += `import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';\\n\\n`;\n\n// --- Config ---\nk6Script += `export const options = {\\n`;\nk6Script += `  stages: [\\n`;\nk6Script += `    { duration: '5s', target: 5 },\\n`;\nk6Script += `    { duration: '10s', target: 15 },\\n`;\nk6Script += `    { duration: '5s', target: 0 }\\n`;\nk6Script += `  ],\\n`;\nk6Script += `  noConnectionReuse: true,\\n`;\nk6Script += `};\\n\\n`;\n\n// --- Base URL ---\nk6Script += `const BASE_URL = 'https://petstore.swagger.io/v2';\\n\\n`;\n\n// --- Dynamic endpoints that can return 404 ---\nk6Script += `const dynamicEndpoints = ['/pet/{petId}', '/store/order/{orderId}'];\\n\\n`;\n\n// --- Test Data ---\nk6Script += `const testData = new SharedArray('requests', function() {\\n`;\nk6Script += `  return ${JSON.stringify(filteredData)};\\n`;\nk6Script += `});\\n\\n`;\n\n// --- Generate Test Functions ---\nfilteredData.forEach((endpoint, index) => {\n  const funcName = `test_${index}_${endpoint.endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`;\n  k6Script += `function ${funcName}() {\\n`;\n\n  k6Script += `  let payload = ${JSON.stringify(endpoint.payloads?.[0] || {})};\\n`;\n  k6Script += `  if (payload.email) payload.email = payload.email.replace('@', '+__VU@');\\n`;\n  k6Script += `  if (payload.id) payload.id = payload.id + __VU + __ITER;\\n`;\n\n  k6Script += `  let url = \\`\\${BASE_URL}${endpoint.endpoint}\\`;\\n`;\n  k6Script += `  const pathParams = url.match(/\\\\{(.*?)\\\\}/g) || [];\\n`;\n  k6Script += `  pathParams.forEach(param => {\\n`;\n  k6Script += `    const key = param.replace(/[{}]/g, '');\\n`;\n  k6Script += `    if (payload[key] !== undefined) {\\n`;\n  k6Script += `      url = url.replace(param, payload[key]);\\n`;\n  k6Script += `    } else {\\n`;\n  k6Script += `      let value = key.toLowerCase().includes('id') ? Math.floor(Math.random()*1000 + 1) : 'user' + Math.floor(Math.random()*1000 + 1);\\n`;\n  k6Script += `      url = url.replace(param, value);\\n`;\n  k6Script += `    }\\n`;\n  k6Script += `  });\\n`;\n\n  k6Script += `  const httpMethod = '${endpoint.method.toLowerCase()}' === 'delete' ? 'del' : '${endpoint.method.toLowerCase()}';\\n`;\n  k6Script += `  const body = ['post','put'].includes(httpMethod) ? JSON.stringify(payload) : undefined;\\n`;\n  k6Script += `  const res = http[httpMethod](url, body, { headers: { 'Content-Type': 'application/json' } });\\n`;\n\n  k6Script += `  if (dynamicEndpoints.includes('${endpoint.endpoint}')) {\\n`;\n  k6Script += `    check(res, { '${endpoint.endpoint} status 200/404': (r) => r.status === 200 || r.status === 404 });\\n`;\n  k6Script += `  } else if (httpMethod === 'del') {\\n`;\n  k6Script += `    check(res, { '${endpoint.endpoint} status 200/404': (r) => r.status === 200 || r.status === 404 });\\n`;\n  k6Script += `  } else {\\n`;\n  k6Script += `    check(res, { '${endpoint.endpoint} status 200': (r) => r.status === 200, '${endpoint.endpoint} valid body': (r) => r.body && r.body.length > 0 });\\n`;\n  k6Script += `  }\\n`;\n\n  k6Script += `}\\n\\n`;\n});\n\n// --- Execution Logic ---\nk6Script += `export default function() {\\n`;\nk6Script += `  if (!testData.length) return;\\n`;\nk6Script += `  const randomEndpoint = testData[Math.floor(Math.random() * testData.length)];\\n`;\nk6Script += `  switch(randomEndpoint.endpoint) {\\n`;\nfilteredData.forEach((endpoint, index) => {\n  const funcName = `test_${index}_${endpoint.endpoint.replace(/[^a-zA-Z0-9]/g, '_')}`;\n  k6Script += `    case '${endpoint.endpoint}': ${funcName}(); break;\\n`;\n});\nk6Script += `  }\\n`;\nk6Script += `  sleep(1);\\n`;\nk6Script += `}\\n`;\n\n// --- Handle Summary for HTML and Text Reports ---\nk6Script += `export function handleSummary(data) {\\n`;\nk6Script += `  return {\\n`;\nk6Script += `    \"/files/k6-summary.html\": htmlReport(data),  // Save directly into /files\\n`;\nk6Script += `    \"stdout\": textSummary(data, { indent: \" \", enableColors: true })\\n`;\nk6Script += `  };\\n`;\nk6Script += `}\\n`;\n\nreturn [{\n  json: {\n    k6_script: k6Script\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        128
+      ],
+      "id": "061eb875-e77b-4a66-8c02-a9d580a55c7e",
+      "name": "code to convert test data generated into k6 stress script"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gc-log",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        4176,
+        15264
+      ],
+      "id": "575f7c55-ee60-41c5-8953-eb051b553e5f",
+      "name": "Webhook",
+      "webhookId": "8a68da45-74f8-445c-a4bb-ae503c611e3b",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1959f228-00d7-4653-94cc-fb0211ed43a2",
+              "name": "logLine",
+              "value": "={{$json[\"body\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4400,
+        15264
+      ],
+      "id": "4ec3fe09-f088-486d-8c32-76fa15e8a79c",
+      "name": "Edit Fields1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "http://prometheus:9090/api/v1/query",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "{job=\"springboot\"}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1216,
+        13856
+      ],
+      "id": "a36b1d7f-8e9d-4369-aa96-bb19747a00fa",
+      "name": "prometheus metrics",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "command": "tail -n 1000 /gc-logs/gc.log\n\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        4704,
+        15200
+      ],
+      "id": "d1102d70-6126-4a96-8abf-de8ee58b4e6c",
+      "name": "Execute Command1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return items.map(item => {\n    // Get stdout and remove all newline characters\n    const cleanedLog = item.json.stdout.replace(/\\n/g, '');\n    \n    return {\n        json: {\n            gcLog: cleanedLog\n        }\n    };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        784,
+        12384
+      ],
+      "id": "e47877f6-d50c-4be3-b67f-74d06c432d37",
+      "name": "Code in JavaScript",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/gc.log",
+        "dataPropertyName": "fileData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        12592
+      ],
+      "id": "782c0963-0bf0-4b93-87ec-5e7d6b3fc088",
+      "name": "Read/Write Files from Disk",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Convert your k6 script text to binary format\nconst scriptText = $input.all()[0].json.k6_script;\n\nreturn [{\n  json: {},\n  binary: {\n    fileData: {\n      data: Buffer.from(scriptText).toString('base64'),\n      mimeType: 'application/javascript',\n      fileName: 'k6load_test.js'\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        128
+      ],
+      "id": "8e06d7bd-ba0d-4316-95f3-37e559575614",
+      "name": "code to convert into binary format"
+    },
+    {
+      "parameters": {
+        "command": "K6_PROMETHEUS_RW_SERVER_URL=\"http://prometheus:9090/api/v1/write\" /usr/local/bin/k6 run --out \"experimental-prometheus-rw=server=$K6_PROMETHEUS_RW_SERVER_URL\" --summary-export=/files/k6-summary.json /files/stress-test.js\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        13792
+      ],
+      "id": "758c46bc-3ece-43d8-b2ad-e3f178a14b80",
+      "name": "Executes K6 Stress script ",
+      "alwaysOutputData": true,
+      "disabled": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "write",
+        "fileName": "/files/k6load-test.js",
+        "dataPropertyName": "fileData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        1856,
+        128
+      ],
+      "id": "a07d0aeb-cd2b-41f7-ad95-94a6ce875a7a",
+      "name": "saves K6 stress script to disk"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/k6-summary.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        240,
+        13792
+      ],
+      "id": "663c6c53-6709-41ee-a184-0072eb63f709",
+      "name": "saves the result of execution",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are given this OpenAPI/Swagger spec:\n\n{{ $json[\"data\"] }}\n\nGenerate test data in exactly this JSON format:\n\n{\n  \"requests\": [\n    {\n      \"method\": \"string\",\n      \"endpoint\": \"string\",\n      \"payloadCount\": int,\n      \"payloads\": [object],\n      \"hasExamples\": boolean\n    }\n  ],\n  \"totalPayloads\": int,\n  \"endpointsWithExamples\": [string],\n  \"note\": \"string\"\n}\n\nFollow these rules strictly:\n\n1. Users:\n   - Create ≥3 users with /user/createWithArray or /user/createWithListInput.\n   - Each user object = {id, username, firstName, lastName, email, password, phone, userStatus}.\n   - IDs sequential, usernames/emails unique.\n   - Update with /user/{username} PUT → body must be a full User object, not partial.\n   - Path {username} must match body.username.\n   - Login with /user/login → use query params (?username=&password=), not JSON body.\n   - Logout with /user/logout → no body.\n\n2. Pets:\n   - Create ≥3 pets with /pet POST.\n   - Each pet object = {id, category:{id,name}, name, photoUrls:[…], tags:[{id,name}], status: available|pending|sold}.\n   - Status must be one of the enum only.\n   - Update with /pet PUT → full Pet object only.\n\n3. Orders:\n   - /store/order POST → must reference an existing petId, include quantity, shipDate, status (placed|approved|delivered), complete:true/false.\n\n4. Other endpoints:\n   - Retrieval: /pet/findByStatus and /pet/findByTags → use correct query params.\n   - Cleanup: DELETE /pet/{petId}, /user/{username} for existing ones only.\n\n5. General:\n   - payloadCount = number of payloads.\n   - hasExamples = true if Swagger shows examples, else false.\n   - Keep logical consistency across create, update, login, delete.\n   - JSON must be valid and parseable, no extra characters.\n   - Only use Indian names and realistic Indian data (names, emails, phone numbers, pet names, dates).\n\nExample for User: {id:1, username:\"raj123\", firstName:\"Raj\", lastName:\"Sharma\", email:\"raj.sharma@example.in\", password:\"Password123\", phone:\"9876543210\", userStatus:0}\nExample for Pet: {id:1, category:{id:1,name:\"Dogs\"}, name:\"Sheru\", photoUrls:[\"url1\"], tags:[{id:1,name:\"dog\"}], status:\"available\"}\n\n\"note\": \n\"All data uses Indian names and emails. IDs strictly within Swagger 1-10 range. Flow covers create, login, update, retrieve, upload, order, delete, and logout.\"",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "You are a data generator for API testing using the Petstore OpenAPI specification. Produce **valid JSON only**.\n\nRules:\n\n1. Output **raw JSON only**, no Markdown, explanations, or code fences.\n2. Expand schemas fully:\n\n   - Pet = {id, category:{id,name}, name, photoUrls:[…], tags:[{id,name}], status}\n   - User = {id, username, firstName, lastName, email, password, phone, userStatus}\n   - Order = {id, petId, quantity, shipDate, status, complete}\n\n3. IDs must be sequential integers starting from 1.\n4. Use **realistic Indian names** for users, emails, and phone numbers. Use Indian-style pet names as well.\n5. Only generate fields defined in the schema; no extra fields.\n6. Respect enum values:\n   - Pet.status = available | pending | sold\n   - Order.status = placed | approved | delivered\n7. Arrays: generate ≥3 objects for endpoints that require lists (e.g., createUsersWithArray, findPetsByStatus).\n8. Maintain logical consistency:\n   - Pet IDs used in Orders must exist.\n   - Orders reference existing Pets.\n   - Users must have unique usernames and emails.\n9. Follow the full user flow:\n\n   - Create ≥3 Users (/user/createWithArray or /user/createWithList)\n   - Log in each User (/user/login)\n   - Update each User (/user/{username} PUT) with full User object\n   - Create ≥3 Pets (/pet POST) with full Pet object\n   - Update Pets (/pet PUT or /pet/{petId} POST)\n   - Upload images (/pet/{petId}/uploadImage)\n   - Retrieve Pets (/pet/findByStatus, /pet/findByTags)\n   - Place Orders (/store/order POST)\n   - Retrieve Orders (/store/order/{orderId} GET)\n   - Delete Orders (/store/order/{orderId} DELETE)\n   - Delete Pets (/pet/{petId} DELETE)\n   - Log out Users (/user/logout, no payload)\n   - Delete Users (/user/{username} DELETE)\n\n10. Ensure JSON is fully parseable, with no trailing commas or invalid syntax.\n11. All payloads must strictly conform to the Swagger schema so that HTTP status checks and body validation will pass in K6 load tests.\n"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "75b08704-ae48-4f9f-a1d7-d7bd31d138c3",
+      "name": "Test Data Generator"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert performance analyst. You are given structured performance metrics from a banking application in JSON format, including K6 test results, Spring Boot metrics, and Prometheus metrics.\n\nYour task is to generate human-readable, factual insights for a performance report. Focus only on the following sections: \n\n\n1. Executive Summary\n   - Overall System Health (Healthy / Degraded / Critical)\n   - Key Findings (major bottlenecks, anomalies, successes)\n   - Correlations (e.g., GC pause → latency spike)\n   - Top 3–5 Actionable Recommendations\n   - Business Impact (effects on operations or financial goals)\n\n2. Findings and Recommendations\n   - Summary of Findings\n   - Root Causes of the issues\n   - Actionable Recommendations (metric, value, threshold, suggested action, expected impact, next steps, priority)\n\n3. Conclusion\n   - Overall Performance Summary\n   - Future Outlook\n\n**Hard rules:**\n- Output only plain text JSON with keys: executive_summary, findings_recommendations, conclusion\n- Do NOT invent metrics; use only the provided numbers\n- Keep language concise, factual, and business-friendly\n- Highlight any metrics exceeding thresholds:\n    - HTTP error rate >0%\n    - p95 duration >1000ms\n    - Blocked >50%\n    - CPU >80%\n    - JVM memory >80%\n    - Service down\n    - Endpoint imbalance >2x\n\nInput example: \n{\n  \"k6\": { /* parsed K6 metrics */ },\n  \"springBoot\": [ /* parsed Spring Boot metrics */ ],\n  \"prometheus\": [ /* parsed Prometheus metrics */ ]\n}\n\nReturn structured JSON like:\n\n{\n  \"executive_summary\": \"...\",\n  \"findings_recommendations\": \"...\",\n  \"conclusion\": \"...\"\n}\n",
+        "batching": {
+          "batchSize": 5,
+          "delayBetweenBatches": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        -48,
+        12928
+      ],
+      "id": "09a5c758-680a-4d5e-99c1-df64325361bd",
+      "name": "Analyzer",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://gceasy.io/analyzeGC?apiKey=a41e2cdc-40d9-4285-9586-d362489124d6",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        224,
+        14352
+      ],
+      "id": "b25b5c20-c35c-43e2-9b2e-e48472052eb7",
+      "name": "HTTP Request",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the GC log string from input\nconst gcLog = $input.all()[0].json.gcLog;\n\n// Split the log into individual entries using regex\n// This pattern splits before every timestamp like [2025-09-15T05:49:19.835+0000]\nconst entries = gcLog.split(/(?=\\[\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}\\+\\d{4}\\])/);\n\n// Join with newline so each entry is on its own line\nconst formattedLog = entries.join('\\n');\n\n// Convert to binary format for Write Binary File node\nreturn [{\n    json: {},\n    binary: {\n        fileData: {\n            data: Buffer.from(formattedLog, 'utf8').toString('base64'),\n            mimeType: 'text/plain',\n            fileName: 'gc.log'\n        }\n    }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1136,
+        12384
+      ],
+      "id": "21e47224-121c-44cb-a799-8850705528a5",
+      "name": "Code in JavaScript1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fileSelector": "/gc-logs/gc.log",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        14352
+      ],
+      "id": "52a975ab-893b-4583-9c48-b9c0b9ba1b18",
+      "name": "Read/Write Files from Disk1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        14624
+      ],
+      "id": "8e23a01c-564e-43a1-99e4-e1ef71366c4b",
+      "name": "Wait1",
+      "webhookId": "954c33e1-f348-4b24-bb83-6fb463adf7b4",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Configuration\nconst totalUsers = 10;        // Number of users per endpoint\nconst swagger = $json[\"data\"]; // Swagger/OpenAPI JSON from HTTP node (adjust if needed)\n\n// List of endpoints to generate data for\nconst endpoints = [\n  \"/api/register\",\n  \"/api/login\",\n  \"/api/update-profile\",\n  \"/api/create-post\",\n  \"/api/logout\"\n];\n\nconst items = [];\nlet userId = 1; // starting user ID\n\n// Generate one batch per endpoint\nfor (const endpoint of endpoints) {\n  items.push({\n    json: {\n      endpoint: endpoint,        // current endpoint\n      startId: userId,           // start ID for this endpoint\n      endId: userId + totalUsers - 1, // end ID for this endpoint\n      swagger: swagger,          // include Swagger spec\n      emptyPayload: endpoint === \"/api/logout\" // flag to tell LLM to use [{}]\n    }\n  });\n  userId += totalUsers; // increment user IDs for next endpoint\n}\n\n// Return batches as separate items to loop over in n8n\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1136,
+        14512
+      ],
+      "id": "d61d2456-64c1-4482-aec2-6cf8737cabcf",
+      "name": "Code in JavaScript2",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -816,
+        14336
+      ],
+      "id": "e2d2c48e-4013-4339-8922-6adc06086794",
+      "name": "Loop Over Items",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/k6load-summary.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2416,
+        12720
+      ],
+      "id": "7780f2ed-4ffb-41a0-bfc5-6e4bf41454af",
+      "name": "saves the result of execution1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "command": "/usr/local/bin/k6 run /files/k6load-test.js --summary-export=/files/k6load-summary.json\n\n"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        128
+      ],
+      "id": "d15095e7-5468-4663-b212-b4ea3b4907e4",
+      "name": "Executes K6 Stress script 1",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// In n8n Function node\n// $json is the incoming JSON from LLM output\n\nlet requests = $json.requests || [];\n\n// Helper: build full User object\nfunction buildUser(id, username, firstName, lastName, email, password, phone, userStatus=0) {\n  return {\n    id,\n    username,\n    firstName,\n    lastName,\n    email,\n    password,\n    phone,\n    userStatus\n  };\n}\n\n// Helper: build full Pet object\nfunction buildPet(id, categoryId, categoryName, name, photoUrls, tags, status) {\n  return {\n    id,\n    category: { id: categoryId, name: categoryName },\n    name,\n    photoUrls,\n    tags,\n    status\n  };\n}\n\n// Fix /user/login → add query params\nrequests = requests.map(r => {\n  if (r.endpoint === \"/user/login\") {\n    const firstUser = requests.find(req => req.endpoint === \"/user/createWithArray\")?.payloads?.[0];\n    if (firstUser) {\n      r.endpoint = `/user/login?username=${firstUser.username}&password=${firstUser.password}`;\n    }\n  }\n  return r;\n});\n\n// Fix /user/{username} → ensure username in path matches body\nrequests = requests.map(r => {\n  if (r.endpoint === \"/user/{username}\" && r.payloads?.length) {\n    const u = r.payloads[0];\n    r.endpoint = `/user/${u.username}`;\n  }\n  return r;\n});\n\n// Fix DELETE /user/{username} → assign existing username\nrequests = requests.map(r => {\n  if (r.method === \"DELETE\" && r.endpoint === \"/user/{username}\") {\n    const firstUser = requests.find(req => req.endpoint === \"/user/createWithArray\")?.payloads?.[0];\n    if (firstUser) {\n      r.endpoint = `/user/${firstUser.username}`;\n    }\n  }\n  return r;\n});\n\n// Fix PUT /pet/{id} → convert to PUT /pet with full object\nrequests = requests.map(r => {\n  if (r.method === \"PUT\" && r.endpoint === \"/pet/{id}\") {\n    const pet = r.payloads?.[0] || null;\n    if (pet) {\n      const fullPet = buildPet(\n        pet.id || 99,\n        1,\n        pet.category?.name || \"Dogs\",\n        pet.name || \"UpdatedPet\",\n        pet.photoUrls?.length ? pet.photoUrls : [\"urlX\"],\n        pet.tags?.length ? pet.tags : [{ id: 10, name: \"UpdatedTag\" }],\n        pet.status || \"available\"\n      );\n      r.endpoint = \"/pet\";\n      r.payloads = [fullPet];\n    }\n  }\n  return r;\n});\n\n// Fix DELETE /pet/{id} → assign existing petId\nrequests = requests.map(r => {\n  if (r.method === \"DELETE\" && r.endpoint === \"/pet/{id}\") {\n    const firstPet = requests.find(req => req.endpoint === \"/pet\")?.payloads?.[0];\n    if (firstPet) {\n      r.endpoint = `/pet/${firstPet.id}`;\n    }\n  }\n  return r;\n});\n\n// Output corrected test data\nreturn [{\n  json: {\n    requests\n  }\n}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        12848
+      ],
+      "id": "ed34a1c4-985c-4358-a877-4e10e3f57e33",
+      "name": "Code in JavaScript3",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "fromJson",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        2784,
+        12752
+      ],
+      "id": "4a13b944-ff70-4201-b29f-bb9758521889",
+      "name": "Extract from File1",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "content": "Genrates Test data for the given OpenApI Spec.",
+        "height": 448,
+        "width": 512,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -176,
+        -144
+      ],
+      "id": "9b6cc15e-0828-4920-ad89-34e33eb53915",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/k6load-summary.json",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        2912,
+        128
+      ],
+      "id": "0c6f9dfa-df2d-4dc2-87aa-1134fd812563",
+      "name": "Read/Write Files from Disk3"
+    },
+    {
+      "parameters": {
+        "model": "mistral:7b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmOllama",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        13184
+      ],
+      "id": "94ed014e-4988-4048-b851-04c12aaffd41",
+      "name": "Ollama Model",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input: assume the previous node output is in `items[0].json.stdout`\nconst output = items[0].json.stdout;\n\n// Regex to remove ANSI codes\nconst cleanOutput = output.replace(\n  // Matches ANSI escape sequences\n  /\\x1b\\[[0-9;]*m/g, \n  ''\n);\n\nreturn [\n  {\n    json: {\n      clean_stdout: cleanOutput\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2592,
+        128
+      ],
+      "id": "a96039cb-1f22-442b-a57c-a52e8ddc3280",
+      "name": "Code in JavaScript4"
+    },
+    {
+      "parameters": {
+        "amount": 40
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        320,
+        128
+      ],
+      "id": "ad477d1c-274f-426c-8f8f-9ce952694401",
+      "name": "Wait2",
+      "webhookId": "f7da43e3-3f35-4303-9cae-ab6fff5b2ca0"
+    }
+  ],
+  "pinData": {
+    "Test Data Generator": [
+      {
+        "json": {
+          "requests": [
+            {
+              "method": "POST",
+              "endpoint": "/user/createWithArray",
+              "payloadCount": 1,
+              "payloads": [
+                [
+                  {
+                    "id": 1,
+                    "username": "rajesh",
+                    "firstName": "Rajesh",
+                    "lastName": "Kumar",
+                    "email": "rajesh.kumar@example.in",
+                    "password": "Rajesh@123",
+                    "phone": "9876543210",
+                    "userStatus": 1
+                  },
+                  {
+                    "id": 2,
+                    "username": "anita",
+                    "firstName": "Anita",
+                    "lastName": "Sharma",
+                    "email": "anita.sharma@example.in",
+                    "password": "Anita@123",
+                    "phone": "9123456780",
+                    "userStatus": 1
+                  },
+                  {
+                    "id": 3,
+                    "username": "suresh",
+                    "firstName": "Suresh",
+                    "lastName": "Patel",
+                    "email": "suresh.patel@example.in",
+                    "password": "Suresh@123",
+                    "phone": "9988776655",
+                    "userStatus": 1
+                  }
+                ]
+              ],
+              "hasExamples": true
+            },
+            {
+              "method": "GET",
+              "endpoint": "/user/login",
+              "payloadCount": 3,
+              "payloads": [
+                {
+                  "username": "rajesh",
+                  "password": "Rajesh@123"
+                },
+                {
+                  "username": "anita",
+                  "password": "Anita@123"
+                },
+                {
+                  "username": "suresh",
+                  "password": "Suresh@123"
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "PUT",
+              "endpoint": "/user/{username}",
+              "payloadCount": 3,
+              "payloads": [
+                {
+                  "username": "rajesh",
+                  "body": {
+                    "id": 1,
+                    "username": "rajesh",
+                    "firstName": "Rajesh S",
+                    "lastName": "Kumar",
+                    "email": "rajesh.kumar@example.in",
+                    "password": "Rajesh@123",
+                    "phone": "9876543210",
+                    "userStatus": 1
+                  }
+                },
+                {
+                  "username": "anita",
+                  "body": {
+                    "id": 2,
+                    "username": "anita",
+                    "firstName": "Anita V",
+                    "lastName": "Sharma",
+                    "email": "anita.sharma@example.in",
+                    "password": "Anita@123",
+                    "phone": "9123456780",
+                    "userStatus": 1
+                  }
+                },
+                {
+                  "username": "suresh",
+                  "body": {
+                    "id": 3,
+                    "username": "suresh",
+                    "firstName": "Suresh M",
+                    "lastName": "Patel",
+                    "email": "suresh.patel@example.in",
+                    "password": "Suresh@123",
+                    "phone": "9988776655",
+                    "userStatus": 1
+                  }
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "POST",
+              "endpoint": "/pet",
+              "payloadCount": 3,
+              "payloads": [
+                {
+                  "id": 1,
+                  "category": {
+                    "id": 1,
+                    "name": "Dogs"
+                  },
+                  "name": "Sheru",
+                  "photoUrls": [
+                    "http://example.in/sheru1.jpg"
+                  ],
+                  "tags": [
+                    {
+                      "id": 1,
+                      "name": "dog"
+                    }
+                  ],
+                  "status": "available"
+                },
+                {
+                  "id": 2,
+                  "category": {
+                    "id": 2,
+                    "name": "Cats"
+                  },
+                  "name": "Moti",
+                  "photoUrls": [
+                    "http://example.in/moti1.jpg"
+                  ],
+                  "tags": [
+                    {
+                      "id": 2,
+                      "name": "cat"
+                    }
+                  ],
+                  "status": "pending"
+                },
+                {
+                  "id": 3,
+                  "category": {
+                    "id": 3,
+                    "name": "Birds"
+                  },
+                  "name": "Mitthu",
+                  "photoUrls": [
+                    "http://example.in/mitthu1.jpg"
+                  ],
+                  "tags": [
+                    {
+                      "id": 3,
+                      "name": "bird"
+                    }
+                  ],
+                  "status": "sold"
+                }
+              ],
+              "hasExamples": true
+            },
+            {
+              "method": "PUT",
+              "endpoint": "/pet",
+              "payloadCount": 3,
+              "payloads": [
+                {
+                  "id": 1,
+                  "category": {
+                    "id": 1,
+                    "name": "Dogs"
+                  },
+                  "name": "Sheru Updated",
+                  "photoUrls": [
+                    "http://example.in/sheru1.jpg"
+                  ],
+                  "tags": [
+                    {
+                      "id": 1,
+                      "name": "dog"
+                    }
+                  ],
+                  "status": "available"
+                },
+                {
+                  "id": 2,
+                  "category": {
+                    "id": 2,
+                    "name": "Cats"
+                  },
+                  "name": "Moti Updated",
+                  "photoUrls": [
+                    "http://example.in/moti1.jpg"
+                  ],
+                  "tags": [
+                    {
+                      "id": 2,
+                      "name": "cat"
+                    }
+                  ],
+                  "status": "pending"
+                },
+                {
+                  "id": 3,
+                  "category": {
+                    "id": 3,
+                    "name": "Birds"
+                  },
+                  "name": "Mitthu Updated",
+                  "photoUrls": [
+                    "http://example.in/mitthu1.jpg"
+                  ],
+                  "tags": [
+                    {
+                      "id": 3,
+                      "name": "bird"
+                    }
+                  ],
+                  "status": "sold"
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "POST",
+              "endpoint": "/pet/{petId}/uploadImage",
+              "payloadCount": 3,
+              "payloads": [
+                {
+                  "petId": 1,
+                  "additionalMetadata": "Sheru image",
+                  "file": "sheru.jpg"
+                },
+                {
+                  "petId": 2,
+                  "additionalMetadata": "Moti image",
+                  "file": "moti.jpg"
+                },
+                {
+                  "petId": 3,
+                  "additionalMetadata": "Mitthu image",
+                  "file": "mitthu.jpg"
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "GET",
+              "endpoint": "/pet/findByStatus",
+              "payloadCount": 1,
+              "payloads": [
+                {
+                  "status": [
+                    "available",
+                    "pending",
+                    "sold"
+                  ]
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "GET",
+              "endpoint": "/pet/findByTags",
+              "payloadCount": 1,
+              "payloads": [
+                {
+                  "tags": [
+                    "dog",
+                    "cat",
+                    "bird"
+                  ]
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "POST",
+              "endpoint": "/store/order",
+              "payloadCount": 3,
+              "payloads": [
+                {
+                  "id": 1,
+                  "petId": 1,
+                  "quantity": 2,
+                  "shipDate": "2025-09-23T10:00:00Z",
+                  "status": "placed",
+                  "complete": true
+                },
+                {
+                  "id": 2,
+                  "petId": 2,
+                  "quantity": 1,
+                  "shipDate": "2025-09-24T11:00:00Z",
+                  "status": "approved",
+                  "complete": false
+                },
+                {
+                  "id": 3,
+                  "petId": 3,
+                  "quantity": 3,
+                  "shipDate": "2025-09-25T12:00:00Z",
+                  "status": "delivered",
+                  "complete": true
+                }
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "GET",
+              "endpoint": "/store/order/{orderId}",
+              "payloadCount": 3,
+              "payloads": [
+                1,
+                2,
+                3
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "DELETE",
+              "endpoint": "/store/order/{orderId}",
+              "payloadCount": 3,
+              "payloads": [
+                1,
+                2,
+                3
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "DELETE",
+              "endpoint": "/pet/{petId}",
+              "payloadCount": 3,
+              "payloads": [
+                1,
+                2,
+                3
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "GET",
+              "endpoint": "/user/logout",
+              "payloadCount": 3,
+              "payloads": [
+                {},
+                {},
+                {}
+              ],
+              "hasExamples": false
+            },
+            {
+              "method": "DELETE",
+              "endpoint": "/user/{username}",
+              "payloadCount": 3,
+              "payloads": [
+                "rajesh",
+                "anita",
+                "suresh"
+              ],
+              "hasExamples": false
+            }
+          ],
+          "totalPayloads": 35,
+          "endpointsWithExamples": [
+            "/user/createWithArray",
+            "/pet"
+          ],
+          "note": "IDs and usernames consistent. GET/DELETE use path params (no objects). Flow covers create → login → update → retrieve → upload → order → delete → logout."
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "collecting swagger file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code4": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML1": {
+      "main": [
+        [
+          {
+            "node": "Code4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Executes K6 Stress script ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "prometheus metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "collecting swagger file": {
+      "main": [
+        [
+          {
+            "node": "Test Data Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Test Data Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "code to convert test data generated into k6 stress script": {
+      "main": [
+        [
+          {
+            "node": "code to convert into binary format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prometheus metrics": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "code to convert into binary format": {
+      "main": [
+        [
+          {
+            "node": "saves K6 stress script to disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executes K6 Stress script ": {
+      "main": [
+        []
+      ]
+    },
+    "saves K6 stress script to disk": {
+      "main": [
+        [
+          {
+            "node": "Executes K6 Stress script 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "saves the result of execution": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Data Generator": {
+      "main": [
+        [
+          {
+            "node": "Wait2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Code3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk1": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTML1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        []
+      ]
+    },
+    "Executes K6 Stress script 1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript3": {
+      "main": [
+        []
+      ]
+    },
+    "saves the result of execution1": {
+      "main": [
+        [
+          {
+            "node": "Extract from File1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read/Write Files from Disk3": {
+      "main": [
+        []
+      ]
+    },
+    "Ollama Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript4": {
+      "main": [
+        [
+          {
+            "node": "Read/Write Files from Disk3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait2": {
+      "main": [
+        [
+          {
+            "node": "code to convert test data generated into k6 stress script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "68e6a9c1-749f-4d4d-a2db-b29cef0509ca",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "25d7b9255c3f71ab5197b2ccaa717f714314638e03667a8b12f9efac3515fde9"
+  },
+  "id": "KUnHkrLoQhrUAYyv",
+  "tags": []
+}
